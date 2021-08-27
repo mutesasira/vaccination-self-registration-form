@@ -3,7 +3,6 @@ import {
   HashRouter as Router,
   Route,
 } from "react-router-dom";
-
 import { BookingForm } from './BookingForm';
 
 function App() {

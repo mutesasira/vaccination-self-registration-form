@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { DatePicker } from 'antd';
 import 'antd/dist/antd.css';
 import axios from 'axios';
+import { Alert } from "antd";
+import logooo from '../logooo.png';
 import moment from 'moment';
 
 
@@ -14,6 +16,7 @@ export const BookingForm = () => {
     const [facilities, setFacilities] = useState([]);
     const [selectedDistrict, setSelectedDistrict] = useState('');
     const [districtSubcounty, setDistrictSubcounty] = useState([]);
+    const [formSubmit, setFormSubmit] = useState(false);
 
     const fetchDistricts = async () => {
         const [{ data: { organisationUnits } }, { data: { options: subCounties } }] = await Promise.all([api.get('districts'), api.get('options', { params: { optionSet: 'd16Weazyit6' } })]);
@@ -29,6 +32,7 @@ export const BookingForm = () => {
             setFacilities(data)
         }
     }
+
     const [data, setData] = useState({
         Za0xkyQDpxA: "",
         M3trOwAtMqR: "",
@@ -74,7 +78,7 @@ export const BookingForm = () => {
 
     async function submit(e) {
         e.preventDefault();
-
+        setFormSubmit(true);
         const { orgUnit, dueDate, dob, ...others } = data;
 
         const attributes = Object.entries(others).filter(([k, v]) => !!v).map(([attribute, value]) => {
@@ -107,15 +111,14 @@ export const BookingForm = () => {
         // console.log(JSON.stringify(payload));
         const response = await api.post('insert', payload)
         console.log(response)
-        alert("You have successfully registered")
     }
 
     return (
-        <div className="container" >
-            <div className="my-2">
-                <h1 className="text-3xl py-2 flex bg-blue-600 font-bold justify-center text-white mt-4 uppercase">MINISTRY OF HEALTH UGANDA</h1>
+        <div >
+            <div className="bg-blue-600 w-full"> 
+                <h1 className="text-3xl py-4 flex font-bold justify-center text-white uppercase">MINISTRY OF HEALTH UGANDA</h1>
             </div>
-            <div className="px-32 my-4">
+            <div className="px-32 my-8 justify-center">
                 <h1 className="text-3xl py-4 flex bg-green-500 font-bold justify-center text-white mt-4 uppercase">Vaccination Self Registration Form</h1>
                 <form onSubmit={(e) => submit(e)}
                     className="w-full">
@@ -185,11 +188,17 @@ export const BookingForm = () => {
                                 <select
                                     onChange={(e) => changeData("FZzQbW8AWVd", e.target.value)} id="sex" value={data.FZzQbW8AWVd}
                                     className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="sex">
-                                    <option value="">--Choose Sex--</option>
+                                    <option value="none">--Choose Sex--</option>
                                     <option>MALE</option>
                                     <option>FEMALE</option>
 
                                 </select>
+
+                                {formSubmit && (!data.FZzQbW8AWVd || data.FZzQbW8AWVd === "") ? (
+                                    <Alert message="Please choose a sex" type="error" />   
+                                ) : (
+                                    ""
+                                )}
 
                             </div>
                         </div>
