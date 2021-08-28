@@ -9,7 +9,6 @@ export const changeData = domain.createEvent<{ key: string, value: any }>();
 //     const changedData = { ...data, [key]: value };
 //     setData(changedData);
 //   }
-
 export const $store = domain.createStore<{ [key: string]: any }>({
     Za0xkyQDpxA: "",
     M3trOwAtMqR: "",
@@ -28,6 +27,7 @@ export const $store = domain.createStore<{ [key: string]: any }>({
     FZzQbW8AWVd: "",
     ciCR6BBvIT4: "",
     zyhxsh0kFx5: "",
+    Bkgeb98v5Ea: "", //self Registered (DE)
     dob: moment(),
     dueDate: moment(),
     orgUnit: "",
