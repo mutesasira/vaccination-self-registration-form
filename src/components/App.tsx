@@ -2,6 +2,7 @@ import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import { StyleSheet } from '@react-pdf/renderer';
 import { BookingForm } from "./BookingForm";
 import { PDFForm } from "./PDFForm";
+import {LandingPage} from "./LandingPage";
 import { Stepper } from "./Stepper";
 import coa from "../coa.png";
 
@@ -22,7 +23,7 @@ const styles = StyleSheet.create({
 
 function App() {
   return (
-    <div className="App relative"><div className="bg-white">
+    <div className="App"><div className="bg-white">
       <div className=" w-full flex justify-center ">
         <img src={coa} alt="MOH" style={styles.image} />
       </div>
@@ -31,7 +32,7 @@ function App() {
           Ministry Of Health Uganda
         </h1>
       </div>
-      <div className=" px-32 my-2 text-xl justify-center  px-32">
+      <div className=" px-32 my-2 text-xl justify-center ">
         <h1 className="text-xl py-2 flex bg-yellow-600 font-bold justify-center text-white uppercase">
           Vaccination Self Registration Form
         </h1>
@@ -39,6 +40,9 @@ function App() {
       <Router>
         <Switch>
           <Route path="/" exact>
+            <LandingPage />
+          </Route>
+          <Route path="/booking" exact>
             <BookingForm />
           </Route>
           <Route path="/pdf">

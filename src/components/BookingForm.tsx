@@ -107,11 +107,11 @@ export const BookingForm = () => {
       params: { url: 'trackedEntityInstances', program: 'yDuAzyqYABS', ouMode: 'ALL', filter: `Ewi7FUfcHAD:eq:${store.Ewi7FUfcHAD}` },
     }
     )
-    if (data) {
+    if (data && store.Ewi7FUfcHAD == 14) {
       await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
       history.push('/pdf')
     } else {
-      alert('please enter a different NIN Number or Check the Length of the NIN')
+      alert('please enter a different NIN Number or Check the Lengtha f the NIN')
     }
 
   }
@@ -122,7 +122,7 @@ export const BookingForm = () => {
         <h1>Welcome to the Uganda National COVID-19 self registration service</h1>
         <p></p>
       </div> */}
-      <div className="px-32 my-2 text-xl justify-center">
+      <div className="px-32  my-2 text-xl justify-center">
         <form onSubmit={(e) => submit(e)} className="w-full text">
           <h1 className="text-sm py-1 flex border-solid bg-gray-100 font-bold text-gray-500 uppercase mt-8">
             Identification
@@ -517,16 +517,22 @@ export const BookingForm = () => {
               </label>
             </div>
           </div>
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between pb-8">
             <button
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-2 text-sm rounded focus:outline-none focus:shadow-outline"
               type="button"
             >
               CANCEL
             </button>
+            <button onClick={()=>{history.push('/')}}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 text-sm rounded focus:outline-none focus:shadow-outline"
+              type="button"
+            >
+              HOME
+            </button>
             <button
               type="submit"
-              className="bg-green-500 hover:bg-green-700 text-white-400 text-sm  font-bold py-2 px-2 rounded focus:outline-none focus:shadow-outline"
+              className="bg-green-500 hover:bg-green-700 text-white text-sm  font-bold py-2 px-2 rounded focus:outline-none focus:shadow-outline"
             >
               SUBMIT
             </button>

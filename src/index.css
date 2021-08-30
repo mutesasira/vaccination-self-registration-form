@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  
+  @media only screen and (max-width: 600px) {
+    .albert {
+      background-color: lightblue;
+      padding-left: 10px;
+    }
+
+  }
+  .scroll-snap-x {
+    scroll-snap-type: x;
+  }
+  .scroll-snap-y {
+    scroll-snap-type: y;
+  }
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
