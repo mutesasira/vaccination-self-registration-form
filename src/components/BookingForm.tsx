@@ -17,7 +17,6 @@ export const BookingForm = () => {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [districtSubcounty, setDistrictSubcounty] = useState([]);
   const [formSubmit, setFormSubmit] = useState(false);
-  // const [nin, setNin] = useState([]);
 
   const fetchDistricts = async () => {
     const [
@@ -33,6 +32,13 @@ export const BookingForm = () => {
     ]);
     setDistrictSubcounty(subCounties);
     setDistricts(organisationUnits);
+  };
+
+
+  const calculateAge = (birthday: any) => {
+    const ageDifMs = Date.now() - birthday;
+    const ageDate = new Date(ageDifMs);
+    return Math.abs(ageDate.getUTCFullYear() - 1970);
   };
 
   const fetchDistrictFacilities = async () => {
@@ -61,11 +67,10 @@ export const BookingForm = () => {
     setFormSubmit(true);
     const { orgUnit, dueDate, clientname, dob, ...others } = store;
     const facility: any = facilities.find((f: any) => f.id === orgUnit);
+    setFormSubmit(true);
     changeData(
       { key: 'orgUnitName', value: facility?.name }
     )
-    // changeForm({ ...store, })
-    //validate nin
 
     const attributes = Object.entries(others)
       .filter(([k, v]) => !!v)
@@ -104,47 +109,38 @@ export const BookingForm = () => {
     };
     // console.log(JSON.stringify(payload));
 
-    // const ninValidation = async ()=>{
-    //   const {data} = await api.get(
-    //     "validateNin",{
-    //       params: {attribute: "Ewi7FUfcHAD"},
-    //     }
-    //   )
-    //   if (nin === store.Ewi7FUfcHAD){
-    //     return alert("NIN  already exists please Use another NIN")
-    //   } else {}
+    //data is false if NIN exists
+    const { data } = await api.get(
+      "validateNin", {
+      params: { value: store.Ewi7FUfcHAD },
+
+    }
+    )
+    if (data && data.length === 14) {
       const response = await api.post("insert", payload);
       //console.log(payload);
       console.log(response);
       history.push('/pdf')
- 
-    
+    } else {
+      alert('please enter a different NIN Number or Check the Length of the NIN')
+    }
+
   }
-  // const validationFunc = () => {
-  //   if (!!store.Ewi7FUfcHAD && !!store) {
-  //     const params = new URLSearchParams();
-  //   }
-  // } 
 
-
-  
   return (
     <div>
       {/* <div className="text-xl py-2 flex jusify-center font-bold pl-2 text-gray-900 uppercase mt-8">
         <h1>Welcome to the Uganda National COVID-19 self registration service</h1>
         <p></p>
       </div> */}
-      <div className="px-32 my-8 justify-center">
-        <h1 className="text-3xl py-4 flex bg-green-500 font-bold justify-center text-white mt-4 uppercase">
-          Vaccination Self Registration Form
-        </h1>
-        <form onSubmit={(e) => submit(e)} className="w-full">
-          <h1 className="text-xl py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
+      <div className="px-32 my-2 text-xl justify-center">
+        <form onSubmit={(e) => submit(e)} className="w-full text">
+          <h1 className="text-sm py-1 flex border-solid bg-gray-100 font-bold text-gray-500 uppercase mt-8">
             Identification
           </h1>
           <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-900 text-xs font-bold mb-2">
+            <div className="w-full md:w-1/3 px-3 mb-6 md:mb-0 text-lg">
+              <label className="block uppercase tracking-wide text-gray-900 text-xs font-bold mb-1">
                 Client Category <span className="text-red-500 font-xl">*</span>
               </label>
               <div className="relative">
@@ -152,7 +148,7 @@ export const BookingForm = () => {
                   onChange={(e) => changeData({ key: "pCnbIVhxv4j", value: e.target.value })}
                   id="clientcategory"
                   value={store.pCnbIVhxv4j}
-                  className="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-500 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  className="block appearance-none w-full  border border-gray-200 text-gray-500 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 >
                   <option value="">--Select Client Category --</option>
                   <option>National</option>
@@ -173,7 +169,7 @@ export const BookingForm = () => {
                     id="alternativeidtype"
                     value={store.ud4YNaOH3Dw}
                     required
-                    className="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                    className="block appearance-none w-full  border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                   >
                     <option value="">--Select Alternative ID Type--</option>
                     <option>Employee ID</option>
@@ -196,7 +192,7 @@ export const BookingForm = () => {
                   onChange={(e) => changeData({ key: "YvnFn4IjKzx", value: e.target.value })}
                   id="alternativeidnumber"
                   value={store.YvnFn4IjKzx}
-                  className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                   type="text"
                   placeholder="Enter Your Alternative ID Number"
                   required
@@ -215,10 +211,18 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "Ewi7FUfcHAD", value: e.target.value })}
                 id="nin"
                 value={store.Ewi7FUfcHAD}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700  border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
-                placeholder="Enter Your NIN"
-                required            />
+                placeholder="Enter Your NIN (14 Characters)"
+                required />
+              {formSubmit && !store.Ewi7FUfcHAD ? (
+                <Alert
+                  message="eg. 256772090806"
+                  type="error"
+                />
+              ) : (
+                ""
+              )}
             </div>}
 
 
@@ -231,7 +235,7 @@ export const BookingForm = () => {
                   onChange={(e) => changeData({ key: "FZzQbW8AWVd", value: e.target.value })}
                   id="sex"
                   value={store.FZzQbW8AWVd}
-                  className="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 >
                   <option value="none">--Choose Sex--</option>
                   <option>MALE</option>
@@ -248,7 +252,7 @@ export const BookingForm = () => {
             </div>
           </div>
 
-          <h1 className="text-xl py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
+          <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
             General Information
           </h1>
 
@@ -261,10 +265,10 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "sB1IHYu2xQT", value: e.target.value })}
                 id="clientname"
                 value={store.sB1IHYu2xQT}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
                 placeholder="First Name"
-                required 
+                required
               />
             </div>
           </div>
@@ -277,10 +281,10 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "LY2bDXpNvS7", value: e.target.value })}
                 id="occupation"
                 value={store.LY2bDXpNvS7}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
                 placeholder=""
-                required 
+                required
               />
             </div>
             <div className="w-full md:w-1/3 px-2 mb-6 md:mb-0">
@@ -292,8 +296,8 @@ export const BookingForm = () => {
                   onChange={(e) => changeData({ key: "CFbojfdkIIj", value: e.target.value })}
                   id="prioritygroup"
                   value={store.CFbojfdkIIj}
-                  className="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                  required 
+                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  required
                 >
                   <option value="">--Select Priority Group--</option>
                   <option>Teachers</option>
@@ -329,7 +333,7 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "s2Fmb8zgEem", value: e.target.value })}
                 id="sex"
                 value={store.s2Fmb8zgEem}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
                 placeholder=""
               />
@@ -342,10 +346,10 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "ciCR6BBvIT4", value: e.target.value })}
                 id="phonenumber"
                 value={store.ciCR6BBvIT4}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
                 placeholder=""
-                required 
+                required
               />
             </div>
           </div>
@@ -358,7 +362,7 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "SSGgoQ6SnCx", value: e.target.value })}
                 id="alternativenumber"
                 value={store.SSGgoQ6SnCx}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
                 placeholder="Alternative Number"
               />
@@ -371,17 +375,17 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "Sqq2zIYWBOK", value: e.target.value })}
                 id="relationshipwithalterntivenumber"
                 value={store.Sqq2zIYWBOK}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
                 placeholder="Relationship with alternative number"
               />
             </div>
           </div>
 
-          <h1 className="text-xl py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
+          <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
             Location
           </h1>
-          <h1 className="text-lg py-2 flex border-solid bg-gray-100 font-bold pl-4 text-gray-500 mt-4">
+          <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-4 text-gray-500 mt-4">
             Client's Residence Address
           </h1>
           <div className="flex flex-wrap -mx-3 mb-6">
@@ -393,7 +397,7 @@ export const BookingForm = () => {
                 <select
                   value={store.Za0xkyQDpxA}
                   onChange={(e) => changeData({ key: "Za0xkyQDpxA", value: e.target.value })}
-                  className="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 >
                   <option value="">--Select District/Subcounty--</option>
                   {districtSubcounty.map((d: { code: string, name: string }) => (
@@ -412,7 +416,7 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "M3trOwAtMqR", value: e.target.value })}
                 id="parish"
                 value={store.M3trOwAtMqR}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
                 placeholder="Parish"
               />
@@ -425,7 +429,7 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "zyhxsh0kFx5", value: e.target.value })}
                 id="village"
                 value={store.zyhxsh0kFx5}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
                 placeholder="Village"
               />
@@ -438,7 +442,7 @@ export const BookingForm = () => {
                 onChange={(e) => changeData({ key: "ZHF7EsKgiaM", value: e.target.value })}
                 id="placeofwork"
                 value={store.ZHF7EsKgiaM}
-                className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
                 placeholder="Place of Work"
                 required
@@ -446,7 +450,7 @@ export const BookingForm = () => {
             </div>
           </div>
 
-          <h1 className="text-lg py-2 flex border-solid bg-gray-100 font-bold pl-4 text-gray-500 mt-4">
+          <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-4 text-gray-500 mt-4">
             Preffered Vaccination Site
           </h1>
           <div className="flex flex-wrap -mx-3 mb-6">
@@ -458,7 +462,7 @@ export const BookingForm = () => {
                 <select
                   value={selectedDistrict}
                   onChange={changeDistrict}
-                  className="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                   id="district"
                   required
                 >
@@ -480,7 +484,7 @@ export const BookingForm = () => {
                   value={store.orgUnit}
                   onChange={(e) => changeData({ key: "orgUnit", value: e.target.value })}
                   required
-                  className="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 >
                   <option value="">--Select Facility--</option>
                   {facilities.map((d: { id: string, name: string }) => (
@@ -500,7 +504,7 @@ export const BookingForm = () => {
                 <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <div className="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+                <div className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
                   <DatePicker
                     onChange={(date) => changeData({ key: "dueDate", value: date })}
                     value={store.dueDate}
@@ -510,13 +514,13 @@ export const BookingForm = () => {
             </div>
           </div>
 
-          <h1 className="text-xl py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
+          <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
             Disclaimer
           </h1>
           <div className="flex flex-wrap -mx-3 mb-6">
             <div className="w-full md:w-2/3 px-3 mb-6 md:mb-0">
               <label className=" block text-gray-500 font-bold">
-                <input className="mr-2 leading-tight" type="checkbox" />
+                <input className="mr-2 leading-tight" type="checkbox" required />
                 <span className="text-sm">
                   <span className="text-red-500">*</span>Agree to Terms and
                   Conditions?
@@ -526,14 +530,14 @@ export const BookingForm = () => {
           </div>
           <div className="flex items-center justify-between mb-8">
             <button
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-2 text-sm rounded focus:outline-none focus:shadow-outline"
               type="button"
             >
               CANCEL
             </button>
             <button
               type="submit"
-              className="bg-green-500 hover:bg-green-700 text-white-400 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="bg-green-500 hover:bg-green-700 text-white-400 text-sm  font-bold py-2 px-2 rounded focus:outline-none focus:shadow-outline"
             >
               SUBMIT
             </button>
@@ -541,5 +545,5 @@ export const BookingForm = () => {
         </form>
       </div>
     </div>
-  ); 
+  );
 };

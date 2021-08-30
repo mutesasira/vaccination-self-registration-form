@@ -1,27 +1,41 @@
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
-//import { Document, Page, StyleSheet, Text, View, Image } from '@react-pdf/renderer';
+import { StyleSheet } from '@react-pdf/renderer';
 import { BookingForm } from "./BookingForm";
 import { PDFForm } from "./PDFForm";
-import {Stepper} from "./Stepper";
-//import coa from "../coa.png";
+import { Stepper } from "./Stepper";
+import coa from "../coa.png";
 
-// const styles = StyleSheet.create({
-//   image: {
-//     width: 50,
-//     height: 50,
-//   },
-  
-// });
+const styles = StyleSheet.create({
+  image: {
+    width: 100,
+    marginTop: 2,
+    position: 'absolute',
+    height: 100,
+    display: 'flex',
+    alignItems: 'center',
+    alignContent: 'center',
+    justifyContent: 'center'
+  },
+
+});
 
 
 function App() {
   return (
-    <div className="App">
-      <div className="bg-blue-900 w-full">
-      <h1 className="text-3xl py-4 flex font-bold justify-center text-white uppercase">    
-          MINISTRY OF HEALTH UGANDA
+    <div className="App relative"><div className="bg-white">
+      <div className=" w-full flex justify-center ">
+        <img src={coa} style={styles.image} />
+      </div>
+      <div className=" w-full flex justify-center ">
+        <h1 className="text-xl py-4 mt-24 mb-1 flex font-bold justify-center text-black uppercase ">
+          Ministry Of Health Uganda
         </h1>
       </div>
+      <div className=" px-32 my-2 text-xl justify-center  px-32">
+        <h1 className="text-xl py-2 flex bg-yellow-600 font-bold justify-center text-white uppercase">
+          Vaccination Self Registration Form
+        </h1>
+      </div></div>
       <Router>
         <Switch>
           <Route path="/" exact>

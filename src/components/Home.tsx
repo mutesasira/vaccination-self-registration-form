@@ -1,9 +1,12 @@
 import React from 'react'
+const Barcode = require('react-barcode');
+
+
 
 export const Home = () => {
     return (
         <div>
-            Home
+            <Barcode value="test" />
         </div>
     )
 }
