@@ -36,10 +36,10 @@ export const BookingForm = () => {
 
   const fetchDistrictFacilities = async () => {
     if (selectedDistrict) {
-      const { data } = await api.get("dhis2", {
+      const { data: { organisationUnits } } = await api.get("dhis2", {
         params: { url: `organisationUnits/${selectedDistrict}`, includeDescendants: true, fields: 'id,name,level' },
       });
-      setFacilities(data);
+      setFacilities(organisationUnits.filter((ou: any) => ou.level === 5));
     }
   };
 
