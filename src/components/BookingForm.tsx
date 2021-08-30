@@ -10,7 +10,7 @@ export const BookingForm = () => {
   const store = useStore($store)
   const history = useHistory();
   const api = axios.create({
-    baseURL: "http://localhost:3002/greeter/",
+    baseURL: "http://services.dhis2.hispuganda.org/",
   });
   const [districts, setDistricts] = useState([]);
   const [facilities, setFacilities] = useState([]);
@@ -27,24 +27,17 @@ export const BookingForm = () => {
         data: { options: subCounties },
       },
     ] = await Promise.all([
-      api.get("districts"),
-      api.get("options", { params: { optionSet: "d16Weazyit6" } }),
+      api.get('dhis2', { params: { url: 'organisationUnits.json', level: '3', paging: false, fields: 'id,name' } }),
+      api.get("dhis2", { params: { url: `optionSets/d16Weazyit6.json`, fields: 'options[name,code]' } })
     ]);
     setDistrictSubcounty(subCounties);
     setDistricts(organisationUnits);
   };
 
-
-  const calculateAge = (birthday: any) => {
-    const ageDifMs = Date.now() - birthday;
-    const ageDate = new Date(ageDifMs);
-    return Math.abs(ageDate.getUTCFullYear() - 1970);
-  };
-
   const fetchDistrictFacilities = async () => {
     if (selectedDistrict) {
-      const { data } = await api.get("facilities", {
-        params: { district: selectedDistrict },
+      const { data } = await api.get("dhis2", {
+        params: { url: `organisationUnits/${selectedDistrict}`, includeDescendants: true, fields: 'id,name,level' },
       });
       setFacilities(data);
     }
@@ -107,19 +100,15 @@ export const BookingForm = () => {
       ],
       attributes,
     };
-    // console.log(JSON.stringify(payload));
 
     //data is false if NIN exists
-    const { data } = await api.get(
-      "validateNin", {
-      params: { value: store.Ewi7FUfcHAD },
 
+    const { data } = await api.get("dhis2", {
+      params: { url: 'trackedEntityInstances', program: 'yDuAzyqYABS', ouMode: 'ALL', filter: `Ewi7FUfcHAD:eq:${store.Ewi7FUfcHAD}` },
     }
     )
     if (data && data.length === 14) {
-      const response = await api.post("insert", payload);
-      //console.log(payload);
-      console.log(response);
+      await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
       history.push('/pdf')
     } else {
       alert('please enter a different NIN Number or Check the Length of the NIN')

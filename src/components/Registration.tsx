@@ -109,11 +109,9 @@ export const Registration: FC<{ [key: string]: any }> = ({ dueDate, orgUnitName,
 
               </View>
               <View>
-                
+
               </View>
             </View>
-
-
           </View>
           <View
             style={{ ...styles.pageNumber }}

@@ -24,7 +24,7 @@ function App() {
   return (
     <div className="App relative"><div className="bg-white">
       <div className=" w-full flex justify-center ">
-        <img src={coa} style={styles.image} />
+        <img src={coa} alt="MOH" style={styles.image} />
       </div>
       <div className=" w-full flex justify-center ">
         <h1 className="text-xl py-4 mt-24 mb-1 flex font-bold justify-center text-black uppercase ">
