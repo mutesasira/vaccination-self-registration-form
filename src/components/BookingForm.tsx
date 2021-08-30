@@ -107,7 +107,7 @@ export const BookingForm = () => {
       params: { url: 'trackedEntityInstances', program: 'yDuAzyqYABS', ouMode: 'ALL', filter: `Ewi7FUfcHAD:eq:${store.Ewi7FUfcHAD}` },
     }
     )
-    if (data && data.length === 14) {
+    if (data) {
       await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
       history.push('/pdf')
     } else {
