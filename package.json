@@ -1,0 +1,71 @@
+{
+  "name": "vaccination-self-registration-form",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@chakra-ui/react": "^1.6.6",
+    "@craco/craco": "^6.2.0",
+    "@createnextapp/react-barcode": "^1.1.1",
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "@react-pdf/renderer": "^2.0.19",
+    "@tailwindcss/forms": "^0.3.3",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^16.7.4",
+    "@types/react": "^17.0.19",
+    "@types/react-dom": "^17.0.9",
+    "antd": "^4.16.13",
+    "axios": "^0.21.1",
+    "effector": "^21.8.12",
+    "effector-react": "^21.3.3",
+    "framer-motion": "^4",
+    "mysql": "^2.18.1",
+    "qrcode": "^1.4.4",
+    "react": "^17.0.2",
+    "react-alert": "^7.0.3",
+    "react-alert-template-basic": "^1.0.2",
+    "react-barcode": "^1.4.0",
+    "react-datepicker": "^4.2.1",
+    "react-dom": "^17.0.2",
+    "react-hook-form": "^7.13.0",
+    "react-qr-barcode-scanner": "^1.0.6",
+    "react-query": "^3.21.0",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.3",
+    "typescript": "^4.4.2",
+    "web-vitals": "^1.0.1"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/react-router-dom": "^5.1.8",
+    "autoprefixer": "^9",
+    "postcss": "^7",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat"
+  }
+}
