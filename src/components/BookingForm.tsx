@@ -112,7 +112,7 @@ export const BookingForm = () => {
       )
       if (trackedEntityInstances.length === 0) {
 
-        if (/^256\d\d\d\d\d\d\d\d\d$/.test(store.ciCR6BBvIT4)) {
+        if (/^256[7|4|8|3|2][0-9]{8}$/.test(store.ciCR6BBvIT4)) {
           await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
           history.push('/pdf')
           alert('You have successfully registered for vaccination')
