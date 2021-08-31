@@ -6,7 +6,6 @@ import moment from "moment";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import { $store, changeData } from "../Store";
-import Select from 'react-select';
 
 export const BookingForm = () => {
   const store = useStore($store)
