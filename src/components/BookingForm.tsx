@@ -2,9 +2,11 @@ import { Alert, DatePicker } from "antd";
 import "antd/dist/antd.css";
 import axios from "axios";
 import { useStore } from "effector-react";
+import moment from "moment";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import { $store, changeData } from "../Store";
+import Select from 'react-select';
 
 export const BookingForm = () => {
   const store = useStore($store)
@@ -28,7 +30,7 @@ export const BookingForm = () => {
       },
     ] = await Promise.all([
       api.get('dhis2', { params: { url: 'organisationUnits.json', level: '3', paging: false, fields: 'id,name' } }),
-      api.get("dhis2", { params: { url: `optionSets/d16Weazyit6.json`, fields: 'options[name,code]' } })
+      api.get("dhis2", { params: { url: `optionSets/d16Weazyit6.json`, paging: false, fields: 'options[name,code]' } })
     ]);
     setDistrictSubcounty(subCounties);
     setDistricts(organisationUnits);
@@ -37,7 +39,7 @@ export const BookingForm = () => {
   const fetchDistrictFacilities = async () => {
     if (selectedDistrict) {
       const { data: { organisationUnits } } = await api.get("dhis2", {
-        params: { url: `organisationUnits/${selectedDistrict}`, includeDescendants: true, fields: 'id,name,level' },
+        params: { url: `organisationUnits/${selectedDistrict}`, includeDescendants: true, paging: false, fields: 'id,name,level' },
       });
       setFacilities(organisationUnits.filter((ou: any) => ou.level === 5));
     }
@@ -58,12 +60,11 @@ export const BookingForm = () => {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormSubmit(true);
-    const { orgUnit, dueDate, clientname, dob, ...others } = store;
-    const facility: any = facilities.find((f: any) => f.id === orgUnit);
-    setFormSubmit(true);
-    changeData(
-      { key: 'orgUnitName', value: facility?.name }
-    )
+    const { orgUnit, dueDate, dob, ...others } = store;
+    // const facility: any = facilities.find((f: any) => f.id === orgUnit);
+    // changeData(
+    //   { key: 'orgUnitName', value: facility.name }
+    // )
 
     const attributes = Object.entries(others)
       .filter(([k, v]) => !!v)
@@ -103,15 +104,26 @@ export const BookingForm = () => {
 
     //data is false if NIN exists
 
-    const { data } = await api.get("dhis2", {
-      params: { url: 'trackedEntityInstances', program: 'yDuAzyqYABS', ouMode: 'ALL', filter: `Ewi7FUfcHAD:eq:${store.Ewi7FUfcHAD}` },
-    }
-    )
-    if (data && store.Ewi7FUfcHAD == 14) {
-      await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
-      history.push('/pdf')
+
+    if (/^C[M|F][0-9]{5}[A-Z0-9]{7}$/.test(store.Ewi7FUfcHAD)) {
+      const { data: { trackedEntityInstances } } = await api.get("dhis2", {
+        params: { url: 'trackedEntityInstances', program: 'yDuAzyqYABS', ouMode: 'ALL', filter: `Ewi7FUfcHAD:eq:${store.Ewi7FUfcHAD}` },
+      }
+      )
+      if (trackedEntityInstances.length === 0) {
+
+        if (/^256\d\d\d\d\d\d\d\d\d$/.test(store.ciCR6BBvIT4)) {
+          await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
+          history.push('/pdf')
+          alert('You have successfully registered for vaccination')
+        } else {
+          alert('Please eneter the right format of the phone number e.g 256788907653 ')
+        }
+      } else {
+        alert('Record with entered NIN has already been registered, enter a different NIN')
+      }
     } else {
-      alert('please enter a different NIN Number or Check the Lengtha f the NIN')
+      alert('please Check the Length of the NIN ')
     }
 
   }
@@ -122,14 +134,14 @@ export const BookingForm = () => {
         <h1>Welcome to the Uganda National COVID-19 self registration service</h1>
         <p></p>
       </div> */}
-      <div className="px-32  my-2 text-xl justify-center">
-        <form onSubmit={(e) => submit(e)} className="w-full text">
-          <h1 className="text-sm py-1 flex border-solid bg-gray-100 font-bold text-gray-500 uppercase mt-8">
+      <div className="px-16  my-2 text-xl ">
+        <form onSubmit={(e) => submit(e)} ><div className="flex justify-center block">
+          <h1 className="text-sm py-1 w-full flex border-solid bg-gray-100 font-bold text-gray-500 uppercase mt-8 right">
             Identification
-          </h1>
-          <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-1/3 px-3 mb-6 md:mb-0 text-lg">
-              <label className="block uppercase tracking-wide text-gray-900 text-xs font-bold mb-1">
+          </h1></div>
+          <div className="flex flex-wrap -mx-3 my-2 justify-center block">
+            <div className="w-full text-lg md:w-1/3 px-3 mb-6 md:my-2">
+              <label className="block uppercase tracking-wide text-gray-900 text-xs font-bold mb-2">
                 Client Category <span className="text-red-500 font-xl">*</span>
               </label>
               <div className="relative">
@@ -146,9 +158,46 @@ export const BookingForm = () => {
                 </select>
               </div>
             </div>
+            {store.pCnbIVhxv4j === 'National' &&
+              <div className="w-full md:w-1/3 px-3 mb-6 md:my-2">
+                <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                  NIN (For Ugandans) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  onChange={(e) => changeData({ key: "Ewi7FUfcHAD", value: e.target.value })}
+                  id="nin"
+                  value={store.Ewi7FUfcHAD}
+                  className="appearance-none block w-full text-gray-700  border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  type="text"
+                  placeholder="Enter Your NIN (14 Characters)"
+                  required />
+              </div>}
 
+
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-2">
+              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                Sex <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  onChange={(e) => changeData({ key: "FZzQbW8AWVd", value: e.target.value })}
+                  id="sex"
+                  value={store.FZzQbW8AWVd}
+                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                >
+                  <option value="none">--Choose Sex--</option>
+                  <option>MALE</option>
+                  <option>FEMALE</option>
+                </select>
+
+              </div>
+            </div>
+          </div>
+
+
+          <div className="w-full flex flex-wrap -mx-3 ">
             {store.pCnbIVhxv4j !== 'National' && <>
-              <div className="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+              <div className="w-full md:w-1/2 px-3 mb-6 md:my-2">
                 <label className="block uppercase tracking-wide text-gray-500 text-xs font-bold mb-2">
                   Alternative ID Type <span className="text-red-500">*</span>
                 </label>
@@ -173,8 +222,8 @@ export const BookingForm = () => {
                 </div>
               </div>
 
-              <div className="w-full md:w-1/3 px-3">
-                <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+              <div className="w-full md:w-1/2 px-3 mb-6 md:my-0">
+                <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-2">
                   Alternative ID Number <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -190,79 +239,26 @@ export const BookingForm = () => {
             </>}
           </div>
 
-
-          <div className="flex flex-wrap -mx-3 mb-6">
-            {store.pCnbIVhxv4j === 'National' && <div className="w-full md:w-1/3 px-3">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                NIN (For Ugandans) <span className="text-red-500">*</span>
-              </label>
-              <input
-                onChange={(e) => changeData({ key: "Ewi7FUfcHAD", value: e.target.value })}
-                id="nin"
-                value={store.Ewi7FUfcHAD}
-                className="appearance-none block w-full text-gray-700  border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                type="text"
-                placeholder="Enter Your NIN (14 Characters)"
-                required />
-              {formSubmit && !store.Ewi7FUfcHAD ? (
-                <Alert
-                  message="eg. 256772090806"
-                  type="error"
-                />
-              ) : (
-                ""
-              )}
-            </div>}
-
-
-            <div className="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                Sex <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  onChange={(e) => changeData({ key: "FZzQbW8AWVd", value: e.target.value })}
-                  id="sex"
-                  value={store.FZzQbW8AWVd}
-                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                >
-                  <option value="none">--Choose Sex--</option>
-                  <option>MALE</option>
-                  <option>FEMALE</option>
-                </select>
-
-                {formSubmit &&
-                  (!store.FZzQbW8AWVd || store.FZzQbW8AWVd === "") ? (
-                  <Alert message="Please choose a sex" type="error" />
-                ) : (
-                  ""
-                )}
-              </div>
-            </div>
-          </div>
-
-          <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
+          <h1 className="text-sm py-2 text-center flex border-solid bg-gray-100 font-bold text-gray-500 uppercase mt-4 my-2">
             General Information
           </h1>
 
-          <div className="flex flex-wrap -mx-3 mb-2 ">
-            <div className="w-full px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                Client Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                onChange={(e) => changeData({ key: "sB1IHYu2xQT", value: e.target.value })}
-                id="clientname"
-                value={store.sB1IHYu2xQT}
-                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                type="text"
-                placeholder="First Name"
-                required
-              />
-            </div>
+          <div className="w-full">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-2">
+              Client Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              onChange={(e) => changeData({ key: "sB1IHYu2xQT", value: e.target.value })}
+              id="clientname"
+              value={store.sB1IHYu2xQT}
+              className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 my-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+              type="text"
+              placeholder="First Name"
+              required
+            />
           </div>
-          <div className="flex flex-wrap -mx-3 mb-2">
-            <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+          <div className="w-full flex flex-wrap -mx-3 ">
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-0">
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
                 Occupation <span className="text-red-500">*</span>
               </label>
@@ -276,8 +272,8 @@ export const BookingForm = () => {
                 required
               />
             </div>
-            <div className="w-full md:w-1/3 px-2 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
+              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold ">
                 Priority Group <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -285,7 +281,7 @@ export const BookingForm = () => {
                   onChange={(e) => changeData({ key: "CFbojfdkIIj", value: e.target.value })}
                   id="prioritygroup"
                   value={store.CFbojfdkIIj}
-                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                  className="block appearance-none w-full my-2 border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                   required
                 >
                   <option value="">--Select Priority Group--</option>
@@ -301,33 +297,7 @@ export const BookingForm = () => {
                 </select>
               </div>
             </div>
-          </div>
-          <div className="flex flex-wrap -mx-3 mb-2">
-            <div className="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                Date of Birth <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <DatePicker
-                  onChange={(date) => changeData({ key: "dob", value: date })}
-                  value={store.dob}
-                />
-              </div>
-            </div>
-            <div className="w-full md:w-1/3 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                Age <span className="text-red-500">*</span>
-              </label>
-              <input
-                onChange={(e) => changeData({ key: "s2Fmb8zgEem", value: e.target.value })}
-                id="sex"
-                value={store.s2Fmb8zgEem}
-                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                type="text"
-                placeholder=""
-              />
-            </div>
-            <div className="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
                 Phone Number <span className="text-red-500">*</span>
               </label>
@@ -337,13 +307,47 @@ export const BookingForm = () => {
                 value={store.ciCR6BBvIT4}
                 className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
-                placeholder=""
+                placeholder="e.g 256700505050"
                 required
               />
             </div>
           </div>
-          <div className="flex flex-wrap -mx-3 mb-2 ">
-            <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+
+          <div className="w-full flex flex-wrap -mx-3">
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-0  ">
+              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                Date of Birth <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <DatePicker
+                  onChange={(date) => {
+                    changeData({ key: "dob", value: date })
+                    changeData({ key: "s2Fmb8zgEem", value: moment().diff(date, "years") })
+
+                  }}
+                  value={store.dob}
+                  disabledDate={(date: moment.Moment) => moment().diff(date, "years") <= 18}
+                  defaultPickerValue={moment().subtract(18, "years")}
+                />
+              </div>
+            </div>
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
+              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                Age <span className="text-red-500">*</span>
+              </label>
+              <input
+                disabled
+                onChange={(e) => changeData({ key: "s2Fmb8zgEem", value: e.target.value })}
+                id="sex"
+                value={store.s2Fmb8zgEem}
+                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                type="text"
+                placeholder=""
+              />
+            </div>
+
+
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
                 Alternative Number
               </label>
@@ -356,30 +360,30 @@ export const BookingForm = () => {
                 placeholder="Alternative Number"
               />
             </div>
-            <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                Relationship with Alternative Number
-              </label>
-              <input
-                onChange={(e) => changeData({ key: "Sqq2zIYWBOK", value: e.target.value })}
-                id="relationshipwithalterntivenumber"
-                value={store.Sqq2zIYWBOK}
-                className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                type="text"
-                placeholder="Relationship with alternative number"
-              />
-            </div>
+          </div>
+          <div className="w-full">
+            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-2">
+              Relationship with Alternative Number
+            </label>
+            <input
+              onChange={(e) => changeData({ key: "Sqq2zIYWBOK", value: e.target.value })}
+              id="relationshipwithalterntivenumber"
+              value={store.Sqq2zIYWBOK}
+              className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+              type="text"
+              placeholder="Relationship with alternative number"
+            />
           </div>
 
           <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
             Location
           </h1>
-          <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-4 text-gray-500 mt-4">
+          <h1 className="text-sm py-2 text-center flex border-solid bg-gray-100 font-bold text-gray-500 mt-4">
             Client's Residence Address
           </h1>
-          <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-1/4 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+          <div className="w-full flex flex-wrap -mx-3">
+            <div className="w-full md:w-1/4 px-3 mb-6 md:my-0 ">
+              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-2">
                 District/Subcounty <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -397,7 +401,7 @@ export const BookingForm = () => {
                 </select>
               </div>
             </div>
-            <div className="w-full md:w-1/4 px-3">
+            <div className="w-full md:w-1/4 px-3 mb-6 md:my-0 ">
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
                 Parish
               </label>
@@ -410,7 +414,7 @@ export const BookingForm = () => {
                 placeholder="Parish"
               />
             </div>
-            <div className="w-full md:w-1/4 px-3">
+            <div className="w-full md:w-1/4 px-3 mb-6 md:my-0 ">
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
                 Village
               </label>
@@ -423,7 +427,7 @@ export const BookingForm = () => {
                 placeholder="Village"
               />
             </div>
-            <div className="w-full md:w-1/4 px-3">
+            <div className="w-full md:w-1/4 px-3 mb-6 md:my-0 ">
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
                 Place of Work <span className="text-red-500">*</span>
               </label>
@@ -439,12 +443,12 @@ export const BookingForm = () => {
             </div>
           </div>
 
-          <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-4 text-gray-500 mt-4">
+          <h1 className="text-sm py-2 text-center border-solid bg-gray-100 font-bold pl-4 text-gray-500 mt-4">
             Preffered Vaccination Site
           </h1>
-          <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+          <div className="w-full flex flex-wrap -mx-3">
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
+              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-2">
                 District <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -452,7 +456,6 @@ export const BookingForm = () => {
                   value={selectedDistrict}
                   onChange={changeDistrict}
                   className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                  id="district"
                   required
                 >
                   <option value="">--Select District--</option>
@@ -464,7 +467,7 @@ export const BookingForm = () => {
                 </select>
               </div>
             </div>
-            <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
                 Vaccination Site <span className="text-red-500">*</span>
               </label>
@@ -484,21 +487,17 @@ export const BookingForm = () => {
                 </select>
               </div>
             </div>
-          </div>
-
-          <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-1/2 px-3">
+            <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
               <label className="w-full block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
                 Preffered Date of Vaccination{" "}
                 <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <div className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
-                  <DatePicker
-                    onChange={(date) => changeData({ key: "dueDate", value: date })}
-                    value={store.dueDate}
-                  />
-                </div>
+              <div className="">
+                <DatePicker
+                  onChange={(date) => changeData({ key: "dueDate", value: date })}
+                  value={store.dueDate}
+                  disabledDate={(date: moment.Moment) => date.isBefore(moment())}
+                />
               </div>
             </div>
           </div>
@@ -506,8 +505,8 @@ export const BookingForm = () => {
           <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
             Disclaimer
           </h1>
-          <div className="flex flex-wrap -mx-3 mb-6">
-            <div className="w-full md:w-2/3 px-3 mb-6 md:mb-0">
+          <div className="w-full my-2 ">
+            <div >
               <label className=" block text-gray-500 font-bold">
                 <input className="mr-2 leading-tight" type="checkbox" required />
                 <span className="text-sm">
@@ -518,17 +517,17 @@ export const BookingForm = () => {
             </div>
           </div>
           <div className="flex items-center justify-between pb-8">
+            <button onClick={() => { history.push('/') }}
+              className="bg-yellow-500 hover:bg-yellow-800 text-white font-bold py-2 px-2 text-sm rounded focus:outline-none focus:shadow-outline"
+              type="button"
+            >
+              HOME
+            </button>
             <button
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-2 text-sm rounded focus:outline-none focus:shadow-outline"
               type="button"
             >
               CANCEL
-            </button>
-            <button onClick={()=>{history.push('/')}}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 text-sm rounded focus:outline-none focus:shadow-outline"
-              type="button"
-            >
-              HOME
             </button>
             <button
               type="submit"
