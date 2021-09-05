@@ -22,6 +22,7 @@ export const $store = domain.createStore<{ [key: string]: any }>({
   NI0QRzJvQ0k: "",
   ud4YNaOH3Dw: "",
   SSGgoQ6SnCx: "",
+  vacFacility: "",
   s2Fmb8zgEem: "",
   YvnFn4IjKzx: "",
   FZzQbW8AWVd: "",

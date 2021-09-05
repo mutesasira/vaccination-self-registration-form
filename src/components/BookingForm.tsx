@@ -5,20 +5,35 @@ import { useStore } from "effector-react";
 import moment from "moment";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
+import AsyncSelect from "react-select/async";
 import { $store, changeData } from "../Store";
+import Select from 'react-select';
 
 export const BookingForm = () => {
   const store = useStore($store)
   const history = useHistory();
   const api = axios.create({
-    baseURL: "https://services.dhis2.hispuganda.org/",
+    //baseURL: "https://services.dhis2.hispuganda.org/"
+    baseURL: "http://localhost:3002/greeter/"
   });
   const [districts, setDistricts] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [districtSubcounty, setDistrictSubcounty] = useState([]);
+  const [selectedVac, setSelectedVac] = useState([]);
   const [formSubmit, setFormSubmit] = useState(false);
 
+  const [vac, setVac] = useState([])
+  
+  const aggrepfacilities = async () => {
+    const { data: { organisationUnits } } = await api.get("vac", { params: { url: `dataSets/nTlQefWKMmb.json`, fields: "organisationUnits[id,name,parent[id,name,parent[id,name]]" } })
+    console.log(organisationUnits)
+    setVac(organisationUnits)
+  }
+  useEffect(() => {
+    aggrepfacilities();
+  }, []);
+    
   const fetchDistricts = async () => {
     const [
       {
@@ -44,6 +59,12 @@ export const BookingForm = () => {
     }
   };
 
+  const handleSearchableSelect = (selectedOption:any, key:string) => {
+    if (selectedOption !== null) {
+      changeData({ key, value: selectedOption.value })
+    }
+  }
+
   const changeDistrict = async (e: ChangeEvent<HTMLSelectElement>) => {
     setSelectedDistrict(e.target.value);
   };
@@ -59,7 +80,7 @@ export const BookingForm = () => {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormSubmit(true);
-    const { orgUnit, dueDate, dob, ...others } = store;
+    const { orgUnit, dueDate, dob, vacFacility, ...others } = store;
     // const facility: any = facilities.find((f: any) => f.id === orgUnit);
     // changeData(
     //   { key: 'orgUnitName', value: facility.name }
@@ -73,6 +94,7 @@ export const BookingForm = () => {
 
     const payload = {
       orgUnit,
+      vacFacility,
       trackedEntityType: "MCPQUTHX1Ze",
       dob: dob.format("YYYY-MM-DD"),
       enrollments: [
@@ -102,8 +124,7 @@ export const BookingForm = () => {
     };
 
     //data is false if NIN exists
-
-
+    console.log(payload)
     if (/^C[M|F][0-9]{5}[A-Z0-9]{7}$/.test(store.Ewi7FUfcHAD)) {
       const { data: { trackedEntityInstances } } = await api.get("dhis2", {
         params: { url: 'trackedEntityInstances', program: 'yDuAzyqYABS', ouMode: 'ALL', filter: `Ewi7FUfcHAD:eq:${store.Ewi7FUfcHAD}` },
@@ -112,8 +133,8 @@ export const BookingForm = () => {
       if (trackedEntityInstances.length === 0) {
 
         if (/^256[7|4|8|3|2][0-9]{8}$/.test(store.ciCR6BBvIT4)) {
-          await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
-          history.push('/pdf')
+          // await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
+          // history.push('/pdf')
           alert('You have successfully registered for vaccination')
         } else {
           alert('Please eneter the right format of the phone number e.g 256788907653 ')
@@ -129,10 +150,6 @@ export const BookingForm = () => {
 
   return (
     <div>
-      {/* <div className="text-xl py-2 flex jusify-center font-bold pl-2 text-gray-900 uppercase mt-8">
-        <h1>Welcome to the Uganda National COVID-19 self registration service</h1>
-        <p></p>
-      </div> */}
       <div className="px-16  my-2 text-xl ">
         <form onSubmit={(e) => submit(e)} ><div className="flex justify-center block">
           <h1 className="text-sm py-1 w-full flex border-solid bg-gray-100 font-bold text-gray-500 uppercase mt-8 right">
@@ -306,7 +323,7 @@ export const BookingForm = () => {
                 value={store.ciCR6BBvIT4}
                 className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
-                placeholder="e.g 256700505050"
+                placeholder="e.g +256700505050"
                 required
               />
             </div>
@@ -386,18 +403,20 @@ export const BookingForm = () => {
                 District/Subcounty <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <select
-                  value={store.Za0xkyQDpxA}
-                  onChange={(e) => changeData({ key: "Za0xkyQDpxA", value: e.target.value })}
+                <Select
+                  // value={store.Za0xkyQDpxA}
+                  // onChange={(e) => changeData({ key: "Za0xkyQDpxA", value: e.target.value })}
+                  onChange = { (option)=> handleSearchableSelect(option, store.Za0xkyQDpxA)}
+                  isSearchable={true}
+                  required
+                  defaultValue = {{value:"Select District/SubCounty", label:"Select District/SubCounty"} }
+                  options={districtSubcounty.map((d: { id: string, name: string }) => (
+                    {value:d.name, label:d.name}
+                  ))
+                  }
                   className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 >
-                  <option value="">--Select District/Subcounty--</option>
-                  {districtSubcounty.map((d: { code: string, name: string }) => (
-                    <option key={d.code} value={d.code}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
+                </Select>
               </div>
             </div>
             <div className="w-full md:w-1/4 px-3 mb-6 md:my-0 ">
@@ -442,28 +461,29 @@ export const BookingForm = () => {
             </div>
           </div>
 
-          <h1 className="text-sm py-2 text-center border-solid bg-gray-100 font-bold pl-4 text-gray-500 mt-4">
+          <h1 className="text-sm py-2 border-solid bg-gray-100 font-bold text-gray-500 mt-4">
             Preffered Vaccination Site
           </h1>
           <div className="w-full flex flex-wrap -mx-3">
             <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
-              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-2">
+                <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-1">
                 District <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <select
-                  value={selectedDistrict}
-                  onChange={changeDistrict}
-                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                <Select
+                  //  value={selectedDistrict}
+                  //  onChange={changeDistrict}
+                  onChange = { (option)=> handleSearchableSelect(option,"selectedDistrict")}
+                  isSearchable={true}
                   required
+                  defaultValue = {{value:"Select District", label:"Select District"} }
+                  options={districts.map((d: { id: string, name: string }) => (
+                    {value:d.name, label:d.name}
+                  ))
+                  }
+                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 >
-                  <option value="">--Select District--</option>
-                  {districts.map((d: { id: string, name: string }) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
+                </Select>
               </div>
             </div>
             <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
@@ -471,19 +491,20 @@ export const BookingForm = () => {
                 Vaccination Site <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <select
-                  value={store.orgUnit}
-                  onChange={(e) => changeData({ key: "orgUnit", value: e.target.value })}
+                <Select
+                  //value={store.vacFacility}
+                  //onChange={(option) => changeData({ key: "vacFacility", value: option.value })}
+                  onChange = { (option)=> handleSearchableSelect(option,"vacFacility")}
+                  isSearchable={true}
                   required
+                  defaultValue = {{value:"Select Facility", label:"Select Facility"} }
+                  options={vac.map((d: { id: string, name: string }) => (
+                    {value:d.name, label:d.name}
+                  ))
+                  }
                   className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 >
-                  <option value="">--Select Facility--</option>
-                  {facilities.map((d: { id: string, name: string }) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
+                </Select>
               </div>
             </div>
             <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
@@ -500,7 +521,6 @@ export const BookingForm = () => {
               </div>
             </div>
           </div>
-
           <h1 className="text-sm py-2 flex border-solid bg-gray-100 font-bold pl-2 text-gray-500 uppercase mt-8">
             Disclaimer
           </h1>
