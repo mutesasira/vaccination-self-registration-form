@@ -10,7 +10,7 @@ export const changeData = domain.createEvent<{ key: string, value: any }>();
 //     setData(changedData);
 //   }
 export const $store = domain.createStore<{ [key: string]: any }>({
-  Za0xkyQDpxA: "",
+  Za0xkyQDpxA: undefined,
   M3trOwAtMqR: "",
   sB1IHYu2xQT: "",
   pCnbIVhxv4j: "National",
@@ -31,7 +31,7 @@ export const $store = domain.createStore<{ [key: string]: any }>({
   Bkgeb98v5Ea: "", //self Registered (DE)
   dob: moment(),
   dueDate: moment(),
-  orgUnit: "",
+  orgUnit: undefined,
 }).on(changeForm, (_, form) => form)
   .on(changeData, (state, { key, value }) => {
     return { ...state, [key]: value }

@@ -1,36 +1,25 @@
-import { Alert, DatePicker } from "antd";
+import { DatePicker } from "antd";
 import "antd/dist/antd.css";
 import axios from "axios";
 import { useStore } from "effector-react";
 import moment from "moment";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
-import { $store, changeData } from "../Store";
 import Select from 'react-select';
+import { $store, changeData } from "../Store";
 
 export const BookingForm = () => {
   const store = useStore($store)
   const history = useHistory();
   const api = axios.create({
     baseURL: "https://services.dhis2.hispuganda.org/"
-    //baseURL: "http://localhost:3002/greeter/"
   });
   const [districts, setDistricts] = useState([]);
   const [facilities, setFacilities] = useState([]);
-  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState<{ label: string, value: string }>();
   const [districtSubcounty, setDistrictSubcounty] = useState([]);
-  const [formSubmit, setFormSubmit] = useState(false);
   const [vac, setVac] = useState([])
-  
-  const aggrepfacilities = async () => {
-    const { data: { organisationUnits } } = await api.get("dhis2", { params: { url: `dataSets/nTlQefWKMmb.json`, fields: "organisationUnits[id,name,parent[id,name,parent[id,name]]" } })
-    console.log(organisationUnits)
-    setVac(organisationUnits)
-  }
-  useEffect(() => {
-    aggrepfacilities();
-  }, []);
-    
+
   const fetchDistricts = async () => {
     const [
       {
@@ -39,31 +28,25 @@ export const BookingForm = () => {
       {
         data: { options: subCounties },
       },
+      { data: { organisationUnits: dataSetUnits } }
     ] = await Promise.all([
       api.get('dhis2', { params: { url: 'organisationUnits.json', level: '3', paging: false, fields: 'id,name' } }),
-      api.get("dhis2", { params: { url: `optionSets/d16Weazyit6.json`, paging: false, fields: 'options[name,code]' } })
+      api.get("dhis2", { params: { url: `optionSets/d16Weazyit6.json`, paging: false, fields: 'options[name,code]' } }),
+      api.get("dhis2", { params: { url: `dataSets/nTlQefWKMmb.json`, fields: "organisationUnits[id,name,parent[id,name,parent[id,name]]" } })
     ]);
     setDistrictSubcounty(subCounties);
     setDistricts(organisationUnits);
+    setVac(dataSetUnits)
   };
 
   const fetchDistrictFacilities = async () => {
     if (selectedDistrict) {
       const { data: { organisationUnits } } = await api.get("dhis2", {
-        params: { url: `organisationUnits/${selectedDistrict}`, includeDescendants: true, paging: false, fields: 'id,name,level' },
+        params: { url: `organisationUnits/${selectedDistrict.value}`, includeDescendants: true, paging: false, fields: 'id,name,level' },
       });
-      setFacilities(organisationUnits.filter((ou: any) => ou.vac.find((f:any)=> f.id===store.vacFacility)));
+      const facilities = organisationUnits.filter((ou: any) => vac.find((f: any) => f.id === ou.id));
+      setFacilities(facilities);
     }
-  };
-
-  const handleSearchableSelect = (selectedOption:any, key:string) => {
-    if (selectedOption !== null) {
-      changeData({ key, value: selectedOption.value })
-    }
-  }
-
-  const changeDistrict = async (e: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedDistrict(e.target.value);
   };
 
   useEffect(() => {
@@ -76,22 +59,16 @@ export const BookingForm = () => {
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setFormSubmit(true);
-    const { orgUnit, dueDate, dob, vacFacility, ...others } = store;
-    // const facility: any = facilities.find((f: any) => f.id === orgUnit);
-    // changeData(
-    //   { key: 'orgUnitName', value: facility.name }
-    // )
-
-    const attributes = Object.entries(others)
+    const { orgUnit: { value, label }, dueDate, dob, Za0xkyQDpxA: { value: subCountyId }, vacFacility, ...others } = store;
+    let attributes = Object.entries(others)
       .filter(([k, v]) => !!v)
       .map(([attribute, value]) => {
         return { attribute, value };
       });
 
+    attributes = [...attributes, { attribute: 'Za0xkyQDpxA', value: subCountyId }]
     const payload = {
-      orgUnit,
-      vacFacility,
+      orgUnit: value,
       trackedEntityType: "MCPQUTHX1Ze",
       dob: dob.format("YYYY-MM-DD"),
       enrollments: [
@@ -99,11 +76,11 @@ export const BookingForm = () => {
           program: "yDuAzyqYABS",
           enrollmentDate: "2018-12-02",
           incidentDate: "2018-12-02",
-          orgUnit,
+          orgUnit: value,
           events: [
             {
               program: "yDuAzyqYABS",
-              orgUnit,
+              orgUnit: value,
               eventDate: dueDate.format("YYYY-MM-DD"),
               dueDate: dueDate.format("YYYY-MM-DD"),
               status: "ACTIVE",
@@ -119,19 +96,15 @@ export const BookingForm = () => {
       ],
       attributes,
     };
-
     //data is false if NIN exists
-    console.log(payload)
     if (/^C[M|F][0-9]{5}[A-Z0-9]{7}$/.test(store.Ewi7FUfcHAD)) {
       const { data: { trackedEntityInstances } } = await api.get("dhis2", {
         params: { url: 'trackedEntityInstances', program: 'yDuAzyqYABS', ouMode: 'ALL', filter: `Ewi7FUfcHAD:eq:${store.Ewi7FUfcHAD}` },
-      }
-      )
+      })
       if (trackedEntityInstances.length === 0) {
-
         if (/^256[7|4|8|3|2][0-9]{8}$/.test(store.ciCR6BBvIT4)) {
-          // await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
-          // history.push('/pdf')
+          await api.post("dhis2", payload, { params: { url: 'trackedEntityInstances' } });
+          history.push('/pdf')
           alert('You have successfully registered for vaccination')
         } else {
           alert('Please eneter the right format of the phone number e.g 256788907653 ')
@@ -245,7 +218,7 @@ export const BookingForm = () => {
                   value={store.YvnFn4IjKzx}
                   className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                   type="text"
-                  placeholder="Enter Your Alternative ID Number"
+                  placeholder="e.g 256755898989"
                   required
                 />
               </div>
@@ -320,7 +293,7 @@ export const BookingForm = () => {
                 value={store.ciCR6BBvIT4}
                 className="appearance-none block w-full text-gray-700 border border-gray-200 rounded text-xs py-2 px-1 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                 type="text"
-                placeholder="e.g +256700505050"
+                placeholder="e.g 256700505050"
                 required
               />
             </div>
@@ -399,22 +372,19 @@ export const BookingForm = () => {
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-2">
                 District/Subcounty <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <Select
-                  // value={store.Za0xkyQDpxA}
-                  // onChange={(e) => changeData({ key: "Za0xkyQDpxA", value: e.target.value })}
-                  onChange = { (option)=> handleSearchableSelect(option, store.Za0xkyQDpxA)}
-                  isSearchable={true}
-                  required
-                  defaultValue = {{value:"Select District/SubCounty", label:"Select District/SubCounty"} }
-                  options={districtSubcounty.map((d: { id: string, name: string }) => (
-                    {value:d.name, label:d.name}
-                  ))
-                  }
-                  className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                >
-                </Select>
-              </div>
+              <Select
+                value={store.Za0xkyQDpxA}
+                onChange={(value) => changeData({ key: "Za0xkyQDpxA", value })}
+                isSearchable={true}
+                required
+                defaultValue={{ value: "Select District/SubCounty", label: "Select District/SubCounty" }}
+                options={districtSubcounty.map((d: { code: string, name: string }) => (
+                  { value: d.code, label: d.name }
+                ))
+                }
+                className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+              >
+              </Select>
             </div>
             <div className="w-full md:w-1/4 px-3 mb-6 md:my-0 ">
               <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
@@ -463,19 +433,18 @@ export const BookingForm = () => {
           </h1>
           <div className="w-full flex flex-wrap -mx-3">
             <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
-                <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-1">
+              <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold my-1">
                 District <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Select
-                  //  value={selectedDistrict}
-                  //  onChange={changeDistrict}
-                  onChange = { (option)=> handleSearchableSelect(option,"selectedDistrict")}
+                  value={selectedDistrict}
+                  onChange={(option: any) => setSelectedDistrict(option)}
                   isSearchable={true}
                   required
-                  defaultValue = {{value:"Select District", label:"Select District"} }
+                  defaultValue={{ value: "Select District", label: "Select District" }}
                   options={districts.map((d: { id: string, name: string }) => (
-                    {value:d.name, label:d.name}
+                    { value: d.id, label: d.name }
                   ))
                   }
                   className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
@@ -489,14 +458,13 @@ export const BookingForm = () => {
               </label>
               <div className="relative">
                 <Select
-                  //value={store.vacFacility}
-                  //onChange={(option) => changeData({ key: "vacFacility", value: option.value })}
-                  onChange = { (option)=> handleSearchableSelect(option,"vacFacility")}
+                  value={store.orgUnit}
+                  onChange={(value) => changeData({ key: "orgUnit", value })}
                   isSearchable={true}
                   required
-                  defaultValue = {{value:"Select Facility", label:"Select Facility"} }
-                  options={vac.map((d: { id: string, name: string }) => (
-                    {value:d.name, label:d.name}
+                  defaultValue={{ value: "Select Facility", label: "Select Facility" }}
+                  options={facilities.map((d: { id: string, name: string }) => (
+                    { value: d.id, label: d.name }
                   ))
                   }
                   className="block appearance-none w-full border border-gray-200 text-gray-700 text-xs py-2 px-1 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
@@ -506,7 +474,7 @@ export const BookingForm = () => {
             </div>
             <div className="w-full md:w-1/3 px-3 mb-6 md:my-0 ">
               <label className="w-full block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                Preffered Date of Vaccination{" "}
+                Preferred Date of Vaccination{" "}
                 <span className="text-red-500">*</span>
               </label>
               <div className="">

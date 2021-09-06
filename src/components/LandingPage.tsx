@@ -1,14 +1,7 @@
-import React from 'react'
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import { BookingForm } from './BookingForm';
 import { useHistory } from 'react-router-dom';
 
 export const LandingPage = () => {
     let history = useHistory();
-
-    const [formstate, setFormstate] = useState();
-
-
     return (
         <div className="px-16  my-2 text-xl justify-center block">
             <h2 className="font-bold block">Welcome to Uganda National COVID-19 Vaccination Pre-Registration Portal</h2>

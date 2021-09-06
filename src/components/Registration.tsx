@@ -47,8 +47,10 @@ const styles = StyleSheet.create({
 });
 
 // Create Document Component
-export const Registration: FC<{ [key: string]: any }> = ({ dueDate, orgUnitName, sB1IHYu2xQT }) => {
+export const Registration = () => {
   const store = useStore($store);
+
+  const { orgUnit: { label: orgUnitName }, dueDate } = store
   return (<Document>
     <Page size="A4" style={styles.page} orientation="portrait">
       <View style={{
@@ -70,7 +72,7 @@ export const Registration: FC<{ [key: string]: any }> = ({ dueDate, orgUnitName,
               />
             </View>
             <Text style={{ textTransform: 'uppercase', fontSize: '10px', letterSpacing: '5px', marginVertical: 2, fontFamily: 'Times-Bold' }}>Republic of Uganda</Text>
-            <Text style={{ textTransform: 'uppercase', fontSize: '10px',  marginBottom: '15px', fontFamily: 'Times-Bold' }}> Ministry of Health</Text>
+            <Text style={{ textTransform: 'uppercase', fontSize: '10px', marginBottom: '15px', fontFamily: 'Times-Bold' }}> Ministry of Health</Text>
           </View>
           <View style={{ width: '100%', display: 'flex', flexDirection: 'row' }}>
             <View style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -80,7 +82,7 @@ export const Registration: FC<{ [key: string]: any }> = ({ dueDate, orgUnitName,
               <View style={{ display: 'flex', padding: 10 }}>
                 <View style={{ display: 'flex', flexDirection: 'row', fontSize: '12px', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <Text>Client Name:</Text>
-                  <Text style={{ fontWeight:3 }}>{store.sB1IHYu2xQT}</Text>
+                  <Text style={{ fontWeight: 3 }}>{store.sB1IHYu2xQT}</Text>
                 </View>
                 <View style={{ display: 'flex', flexDirection: 'row', fontSize: '12px', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <Text>Client Category:</Text>
@@ -98,7 +100,7 @@ export const Registration: FC<{ [key: string]: any }> = ({ dueDate, orgUnitName,
                   <Text >Phone Number:</Text>
                   <Text style={{ flex: 1, textAlign: 'right' }}>{store.ciCR6BBvIT4}</Text>
                 </View>
-                <View style={{ display: 'flex', flexDirection: 'row',  fontSize: '12px', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <View style={{ display: 'flex', flexDirection: 'row', fontSize: '12px', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <Text>Preffered Vaccination Date:</Text>
                   <Text>{dueDate.format('YYYY-MM-DD')}</Text>
                 </View>
