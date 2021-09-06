@@ -5,7 +5,6 @@ import { useStore } from "effector-react";
 import moment from "moment";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
-import AsyncSelect from "react-select/async";
 import { $store, changeData } from "../Store";
 import Select from 'react-select';
 
@@ -13,20 +12,18 @@ export const BookingForm = () => {
   const store = useStore($store)
   const history = useHistory();
   const api = axios.create({
-    //baseURL: "https://services.dhis2.hispuganda.org/"
-    baseURL: "http://localhost:3002/greeter/"
+    baseURL: "https://services.dhis2.hispuganda.org/"
+    //baseURL: "http://localhost:3002/greeter/"
   });
   const [districts, setDistricts] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [districtSubcounty, setDistrictSubcounty] = useState([]);
-  const [selectedVac, setSelectedVac] = useState([]);
   const [formSubmit, setFormSubmit] = useState(false);
-
   const [vac, setVac] = useState([])
   
   const aggrepfacilities = async () => {
-    const { data: { organisationUnits } } = await api.get("vac", { params: { url: `dataSets/nTlQefWKMmb.json`, fields: "organisationUnits[id,name,parent[id,name,parent[id,name]]" } })
+    const { data: { organisationUnits } } = await api.get("dhis2", { params: { url: `dataSets/nTlQefWKMmb.json`, fields: "organisationUnits[id,name,parent[id,name,parent[id,name]]" } })
     console.log(organisationUnits)
     setVac(organisationUnits)
   }
@@ -55,7 +52,7 @@ export const BookingForm = () => {
       const { data: { organisationUnits } } = await api.get("dhis2", {
         params: { url: `organisationUnits/${selectedDistrict}`, includeDescendants: true, paging: false, fields: 'id,name,level' },
       });
-      setFacilities(organisationUnits.filter((ou: any) => ou.level === 5));
+      setFacilities(organisationUnits.filter((ou: any) => ou.vac.find((f:any)=> f.id===store.vacFacility)));
     }
   };
 
